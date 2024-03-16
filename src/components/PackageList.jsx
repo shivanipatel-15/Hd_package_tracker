@@ -1,55 +1,49 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import AddPackage from "./AddPackage";
-import UpdateLocation from "./UpdateLocation";
 import StatusChip from "./StatusChip";
-import UpdateStatus from "./UpdateStatus";
 import { formateDate } from "../utils/utils";
+import PackageModal from "./PackageModal";
 
 function PackageList() {
   const packages = useSelector((state) => state.packages);
-
-  const [addPackageModalOpen, setAddPackageModalOpen] = useState(false);
-  const [updateLocationModalOpen, setUpdateLocationModalOpen] = useState(false);
-  const [updateStatusModalOpen, setUpdateStatusModalOpen] = useState(false);
-  const [selectedPackage, setSelectedPackage] = useState(null);
+  const [packageModal, setPackageModal] = useState({
+    isOpen: false,
+    selectedPackage: null,
+    action: "",
+    title: "",
+  });
 
   const [sortedData, setSortedData] = useState([]);
   const [sortOrder, setSortOrder] = useState("asc");
 
   const handleUpdateLocation = (packageInfo) => {
-    setSelectedPackage(packageInfo);
-    setUpdateLocationModalOpen(true);
-  };
-
-  const handleCloseUpdateLocation = () => {
-    setSelectedPackage(null);
-    setUpdateLocationModalOpen(false);
+    setPackageModal({
+      isOpen: true,
+      selectedPackage: packageInfo,
+      action: "update_location",
+      title: "Update Location",
+    });
   };
 
   const handleUpdateStatus = (packageInfo) => {
-    setSelectedPackage(packageInfo);
-    setUpdateStatusModalOpen(true);
-  };
-
-  const handleCloseUpdateStatus = () => {
-    setSelectedPackage(null);
-    setUpdateStatusModalOpen(false);
+    setPackageModal({
+      isOpen: true,
+      selectedPackage: packageInfo,
+      action: "update_status",
+      title: "Update Status",
+    });
   };
 
   useEffect(() => {
     sortData(sortOrder);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [packages]);
 
-  // Function to toggle sorting order
   const toggleSortOrder = () => {
     const newOrder = sortOrder === "asc" ? "desc" : "asc";
     setSortOrder(newOrder);
     sortData(newOrder);
   };
 
-  // Function to sort data by date
   const sortData = (order) => {
     const sorted = [...packages].sort((a, b) => {
       if (order === "asc") {
@@ -69,7 +63,12 @@ function PackageList() {
           <button
             className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
             onClick={() => {
-              setAddPackageModalOpen(true);
+              setPackageModal({
+                isOpen: true,
+                selectedPackage: null,
+                action: "add",
+                title: "Add Package",
+              });
             }}
           >
             Add New Package
@@ -145,24 +144,14 @@ function PackageList() {
                 sortedData.map((item) => (
                   <tr key={item.id}>
                     <td className="px-6 py-4">{item.id}</td>
-                    <td className="px-6 py-4">
-                      {item.senderName}
-                    </td>
-                    <td className="px-6 py-4">
-                      {item.receiverName}
-                    </td>
-                    <td className="px-6 py-4">
-                      {item.sourceLocation}
-                    </td>
-                    <td className="px-6 py-4">
-                      {item.destinationLocation}
-                    </td>
+                    <td className="px-6 py-4">{item.senderName}</td>
+                    <td className="px-6 py-4">{item.receiverName}</td>
+                    <td className="px-6 py-4">{item.sourceLocation}</td>
+                    <td className="px-6 py-4">{item.destinationLocation}</td>
                     <td className={`px-6 py-4 rounded-xl `}>
                       <StatusChip status={item.status} />
                     </td>
-                    <td className="px-6 py-4">
-                      {item.currentLocation}
-                    </td>
+                    <td className="px-6 py-4">{item.currentLocation}</td>
                     <td className="px-6 py-4">
                       {formateDate(item.createdDate)}
                     </td>
@@ -200,7 +189,7 @@ function PackageList() {
                                 : "",
                           }}
                         >
-                          Update Location
+                          Update Current Location
                         </button>
                       </div>
                     </td>
@@ -210,24 +199,20 @@ function PackageList() {
           </table>
         </div>
       </div>
-      <AddPackage
-        isOpen={addPackageModalOpen}
-        onClose={() => setAddPackageModalOpen(false)}
+      <PackageModal
+        isOpen={packageModal.isOpen}
+        action={packageModal.action}
+        selectedPackage={packageModal.selectedPackage}
+        title={packageModal.title}
+        onClose={() => {
+          setPackageModal({
+            isOpen: false,
+            selectedPackage: null,
+            action: "",
+            title: "",
+          });
+        }}
       />
-      {selectedPackage && (
-        <UpdateLocation
-          isOpen={updateLocationModalOpen}
-          onClose={handleCloseUpdateLocation}
-          packageId={selectedPackage.id}
-        />
-      )}
-      {selectedPackage && (
-        <UpdateStatus
-          isOpen={updateStatusModalOpen}
-          onClose={handleCloseUpdateStatus}
-          packageId={selectedPackage.id}
-        />
-      )}
     </>
   );
 }
